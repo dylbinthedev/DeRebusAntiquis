@@ -1,4 +1,4 @@
-# De Rebus Antiquis
+## De Rebus Antiquis
 
 |=------------------------=[ De Rebus Antiquis ]=------------------------=|
 |=-----------------------------------------------------------------------=|
@@ -23,7 +23,7 @@
 4 - References
 5 - Source code
 
--- 0 - Introduction
+# Introduction
 
 This article aims to explain how to exploit the recursive stack overflow
 bug in the iOS 7 bootchain.  No prior exploitation knowledge is required,
@@ -82,7 +82,7 @@ but as explained above, iBoot/iBEC must do so.  Statistically, the more
 complex a component is, the higher the chances it has bugs, so we will go
 for the low hanging fruit :)
 
--- 1.1 - ASL pls
+# ASL pls
 
 First, we need to study our target, which sounds complicated, but it really
 isn't.  iBoot was not meant to be relocatable, it was designed to be run at
@@ -158,7 +158,7 @@ good from the exploitation point of view.  We can locate the code, data and
 even various structures within the heap.  Of course, we need to keep an eye
 on those stacks, because that's what our target is, right?
 
--- 1.2 - Calling my own name
+# Calling my own name
 
 Keep in mind that recursive stack overflow does not necessarily mean direct
 recursion, a la function F() calling itself.  Those are trivial to find but
@@ -211,7 +211,7 @@ The BAD: It will burn through HEAP and hit DATA pretty quickly, and there's
 no way to stop it once it's triggered.
 The WORSE: The iBoot HEAP (and parts of DATA) will be completely fubared.
 
--- 1.3 - Seeing the unseen
+# Seeing the unseen
 
 Back at the time, I only had one device vulnerable to this bug and I was
 wary of losing it.  Trying to just poke at iBoot blindly would be stupid,
@@ -252,7 +252,7 @@ once with the right size just before the main task is created.
     +--------------------+    +--------------------+
     |                    |    |                    |
 
--- 2 - Exploitation
+# Exploitation
 
 -- 2.0 - Dodging the bullets
 
@@ -311,7 +311,7 @@ spot to land on.  SP tuning can be achieved by two methods:
       provides different starting SPs for ReadExtent, but remember it has
       a 64 depth limit.
 
--- 2.1 - Burning the bridges
+# Burning the bridges
 
 iBoot accesses the filesystem in a simple manner.  It caches the two BTree
 headers when "mounting" the partition, then uses ReadExtent() for both file
@@ -390,7 +390,7 @@ BTree record:
 By some trial and error with iloader, we find out the best path we should
 be using is ${boot-ramdisk}="/a/b/c/d/e/f/g/h/i/j/k/l/m/disk.dmg"
 
--- 2.2 - Going for the kill
+# Going for the kill
 
 Once the recursion brings the stack pointer near the allocator metadata,
 our goal is to have memalign() do a write-anywhere for us.  memalign() has
@@ -706,7 +706,7 @@ shown between {}.
                        ^
                        +- some stack cookie lol
 
--- 2.3 - Cleaning the mess
+# Cleaning the mess
 
 Now that we control PC, the last question is how to fix everything up.  The
 iBoot heap is completely and utterly obliterated, entire tasks overwritten
@@ -734,7 +734,7 @@ In summary, sequence goes like this:
 We end up sitting in the iBoot console, with all security checks disabled
 and the GID AES key [11] still enabled.
 
--- 2.4 - Leap of faith
+# Leap of faith
 
 Everything so far can be tried and tested inside iloader running on an ARM
 CPU.  You will see the success message "suck sid", then iBoot restarting
@@ -805,7 +805,7 @@ Of course, the payload would need to be modified to:
     . run nettoyeur
     . jump back to iBoot start point and let it re-run
 
--- 3 - Conclusions
+# Conclusions
 
 Here ends our journey into this specific vulnerability and its exploitation
 method.  It has been fixed in iOS 8, however, back at the time I found it
@@ -833,7 +833,7 @@ Mitigations that would have helped against this exploit:
       This is how Apple patched it in iOS 8.
     - Heap randomisation and/or IASLR would have prevented exploitation.
 
--- 4 - References
+# References
 
 [1] https://embeddedgurus.com/state-space/2014/02/are-we-shooting-ourselves-in-the-foot-with-stack-overflow/
 [2] https://conference.hitb.org/hitbsecconf2013kul/materials/D2T1%20-%20Joshua%20'p0sixninja'%20Hill%20-%20SHAttered%20Dreams.pdf
@@ -848,7 +848,7 @@ Mitigations that would have helped against this exploit:
 [11] https://www.theiphonewiki.com/wiki/GID_Key
 [12] https://github.com/xerub/irecovery
 
--- 5 - Source code
+# Source code
 
 begin-base64 644 iloader.tar.xz
 /Td6WFoAAATm1rRGAgAhARwAAAAQz1jM/u//dF5dADSbCkH02DFI10th7U7qEX/9+t2TcOGp9qNs
